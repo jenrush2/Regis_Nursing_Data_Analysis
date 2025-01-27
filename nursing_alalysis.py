@@ -53,6 +53,7 @@ raw_data['Verified Grade'] = pd.to_numeric(raw_data['Verified Grade'], errors = 
 
 print(raw_data.dtypes)
 raw_data.loc[((raw_data['Dept'].str.contains('CH') & (raw_data['Course Number'].str.contains('206A'))) | ((raw_data['Dept'].str.contains('BL')))) & (raw_data['Course Number'].str.contains('254' or '274' or '276')), 'Completed Credits'] = 3.000
+raw_data.loc[((raw_data['Dept'].str.contains('CH') & (raw_data['Course Number'].str.contains('207A'))) | ((raw_data['Dept'].str.contains('BL')))) & (raw_data['Course Number'].str.contains('255' or '275' or '277')), 'Completed Credits'] = 1.000
 
 
 
