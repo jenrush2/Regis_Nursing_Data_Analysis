@@ -80,9 +80,13 @@ raw_data.loc[
 
 
 science_data = raw_data.filter(['Student ID#', 'Dept' , 'Course Number', 'Verified Grade', 'Completed Credits'], axis =1)
-print(science_data.head(305))
+#print(science_data[1608:1612])
 
-#raw_data['Weighted Grade'] = raw_data['Verified Grade'] * raw_data['Completed Credits']
-#print(raw_data[['Student ID#','Weighted Grade','Verified Grade','Completed Credits']].head(50))
-#print(raw_data[((raw_data['Dept'].str.contains('CH')) & (raw_data['Course Number'].str.contains('206A' or '207A'))) | ((raw_data['Dept'].str.contains('BL') & (raw_data['Course Number'].str.contains('258' or '259' or '274' or '275' or '276' or '277'))))].groupby(['Student ID#']).agg({'Weighted Grade': 'mean'}))
-#print(raw_data[((raw_data['Dept'].str.contains('CH')) & (raw_data['Course Number'].str.contains('206A' or '207A'))) | ((raw_data['Dept'].str.contains('BL') & (raw_data['Course Number'].str.contains('258' or '259' or '274' or '275' or '276' or '277'))))].head(50))
+#getting rid of extra rows we don't need for science GPA
+science_data.dropna(subset=['Dept'], inplace=True)
+science_data.dropna(subset=['Verified Grade'], inplace=True)
+science_data=science_data[science_data['Dept'].isin(['CH', 'BL'])]
+
+
+
+print(science_data.head(50))
