@@ -52,13 +52,35 @@ raw_data['Verified Grade'] = raw_data['Verified Grade'].replace({'A': 4.000, 'A-
 raw_data['Verified Grade'] = pd.to_numeric(raw_data['Verified Grade'], errors = 'coerce', downcast = 'float')
 
 print(raw_data.dtypes)
-raw_data.loc[((raw_data['Dept'].str.contains('CH') & (raw_data['Course Number'].str.contains('206A'))) | ((raw_data['Dept'].str.contains('BL')))) & (raw_data['Course Number'].str.contains('254' or '274' or '276')), 'Completed Credits'] = 3.000
-raw_data.loc[((raw_data['Dept'].str.contains('CH') & (raw_data['Course Number'].str.contains('207A'))) | ((raw_data['Dept'].str.contains('BL')))) & (raw_data['Course Number'].str.contains('255' or '275' or '277')), 'Completed Credits'] = 1.000
 
 
+raw_data.loc[
+    (
+        (raw_data['Dept'].str.contains('CH')) & 
+        (raw_data['Course Number'].str.contains('206A'))
+    ) | 
+    (
+        (raw_data['Dept'].str.contains('BL')) & 
+        (raw_data['Course Number'].str.contains('254|274|276')) 
+    ), 
+    'Completed Credits'
+] = 3.000
 
-#science_data = raw_data.filter(['Student ID#', 'Dept' , 'Course Number', 'Verified Grade', 'Completed Credits'], axis =1)
-#print(science_data.head(50))
+raw_data.loc[
+    (
+        (raw_data['Dept'].str.contains('CH')) & 
+        (raw_data['Course Number'].str.contains('207A'))
+    ) | 
+    (
+        (raw_data['Dept'].str.contains('BL')) & 
+        (raw_data['Course Number'].str.contains('255|275|277')) 
+    ), 
+    'Completed Credits'
+] = 1.000
+
+
+science_data = raw_data.filter(['Student ID#', 'Dept' , 'Course Number', 'Verified Grade', 'Completed Credits'], axis =1)
+print(science_data.head(305))
 
 #raw_data['Weighted Grade'] = raw_data['Verified Grade'] * raw_data['Completed Credits']
 #print(raw_data[['Student ID#','Weighted Grade','Verified Grade','Completed Credits']].head(50))
