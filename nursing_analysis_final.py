@@ -34,12 +34,83 @@ raw_data.loc[
     'Completed Credits'
 ] = 1.000
 
+#Check stuff
+# print(raw_data.sample(50))
+# print(raw_data.dtypes)
+# has a student that earned an F in science course to confirm credit change
+# print(raw_data[1608:1612])
+
 #Group by Student ID#
 grouped_data = raw_data.groupby('Student ID#')
 
+result = []
+
+#Iterate through each group
+for student_id, group_data in grouped_data:
+    #calculations to create each variable
+    
+    #entry cohort
+    def cohort_check(entry_data):
+
+        def year(data):
+            two_digit_year = data[0:2]
+            year = '20' + two_digit_year
+            return year
+
+        if 'STR' in entry_data or 'FTR' in entry_data:
+            return 'TRANSFER'
+        elif 'FN' in entry_data:
+            year = year(entry_data)
+            return 'Fall ' + year
+        elif 'SN' in entry_data:
+            year = year(entry_data)
+            return 'Spring ' + year
+        else:
+            return entry_data
+
+    entry_cohort = group_data['Entry Cohort'].apply(cohort_check)
+
+    #science gpa
+    science_gpa = 'not calculated yet'
+    #admission check
+    admission_check = 'ncy'
+    #rcc check
+    rcc_check = 'ncy'
+    #any grades lower than a c and which ones
+    all_grade_check = 'ncy'
+    #science grades lower than a c and which ones
+    science_grade_check = 'ncy'
+    #minor
+    minor = 'ncy'
+    #completed all 8 science courses? missing which?
+    science_8_check = 'ncy'
+    #withdrawn from any classes? which?
+    withdrawn = 'ncy'
+    #registered for remaining science courses?
+    registered = 'ncy'
+
+    #result as key and value pairs
+    result.append(
+        {'Student ID#': student_id, 
+         'Entry Cohort': entry_cohort, 
+         'Science GPA': science_gpa, 
+         'Guaranteed Admission': admission_check, 
+         'RCC 200': rcc_check, 
+         'Any Grade Lower Than C': all_grade_check, 
+         'Science Grade Lower Than C': science_grade_check, 
+         'Minor': minor, 
+         'Science Classes Completed': science_8_check, 
+         'Withdrawn': withdrawn, 
+         'Registered for Remaining': registered}
+         )
+
+#result to a new dataframe
+nursing_final = pd.DataFrame(result)
 
 
-#Check stuff
-print(raw_data.sample(50))
-print(raw_data.dtypes)
-print(raw_data[1608:1612])
+print(nursing_final.head(50))
+print(nursing_final.sample(50))
+
+#when you're done, drop ID numbers
+#nursing_final.to_excel('nursing_analysis_final.xlsx', index=False)
+
