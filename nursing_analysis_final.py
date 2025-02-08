@@ -68,16 +68,24 @@ for student_id, group_data in grouped_data:
         else:
             return entry_data
 
-    entry_cohort = group_data['Entry Cohort'].apply(cohort_check)
+    entry_cohort = cohort_check(group_data['Entry Cohort'].iloc[0])
 
     #science gpa
-    science_gpa = 'not calculated yet'
+    science_gpa = 'ncy'
     #admission check
     admission_check = 'ncy'
     #rcc check
     rcc_check = 'ncy'
     #any grades lower than a c and which ones
-    all_grade_check = 'ncy'
+    all_grade_check ='yes' if (group_data['Verified Grade'] < 3).any() else 'no'
+    #variables needed for both grade checks
+    dept_course = group_data['Dept'] + group_data['Course Number']
+    #list of classes lower than a c
+    classes_below_c = group_data.loc[group_data['Verified Grade'] < 3, ['Dept', 'Course Number']]
+    #concat Dept and Course Number
+    classes_below_c = classes_below_c['Dept'] + classes_below_c['Course Number']
+    #convert list into comma separated string or none
+    classes_below_c = ', '.join(classes_below_c.tolist()) if not classes_below_c.empty else 'none'
     #science grades lower than a c and which ones
     science_grade_check = 'ncy'
     #minor
@@ -101,16 +109,17 @@ for student_id, group_data in grouped_data:
          'Minor': minor, 
          'Science Classes Completed': science_8_check, 
          'Withdrawn': withdrawn, 
-         'Registered for Remaining': registered}
+         'Registered for Remaining': registered},
+         'Classes Lower Than C': classes_below_c
          )
 
 #result to a new dataframe
 nursing_final = pd.DataFrame(result)
 
 
-print(nursing_final.head(50))
-print(nursing_final.sample(50))
+#print(nursing_final[['Student ID#', 'Entry Cohort', 'Any Grade Lower Than C']].head(50))
+#print(nursing_final[['Student ID#', 'Entry Cohort', 'Any Grade Lower Than C']].sample(50))
 
 #when you're done, drop ID numbers
-#nursing_final.to_excel('nursing_analysis_final.xlsx', index=False)
+nursing_final.to_excel('nursing_analysis_final.xlsx', index=False)
 
