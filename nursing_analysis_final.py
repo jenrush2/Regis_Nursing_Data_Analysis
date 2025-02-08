@@ -5,7 +5,7 @@ raw_data = pd.read_excel("/Users/jenniferrush/Python/Regis_Nursing_Analysis/data
 
 #Change all of the data types so they are strings or floats instead of objects
 raw_data[['Added Minor', 'Class Level', 'Entry Cohort', 'Enrolled Semester','Dept', 'Course Number', 'Course Title']] = raw_data[['Added Minor', 'Class Level', 'Entry Cohort', 'Enrolled Semester','Dept', 'Course Number', 'Course Title']].astype("string")
-raw_data['Verified Grade'] = raw_data['Verified Grade'].replace({'A': '4.000', 'A-': '3.667' ,'B+': '3.333', 'B': '3.000', 'B-': '2.667', 'C+': '2.333', 'C': '2.000', 'C-': '1.667', 'D+': '1.333', 'D': '1.000', 'D-': '0.667', 'F': '0.000', 'W': '1'})
+raw_data['Verified Grade'] = raw_data['Verified Grade'].replace({'A': '4.000', 'A-': '3.667' ,'B+': '3.333', 'B': '3.000', 'B-': '2.667', 'C+': '2.333', 'C': '2.000', 'C-': '1.667', 'D+': '1.333', 'D': '1.000', 'D-': '0.667', 'F': '0.000', 'W': '7'})
 raw_data['Verified Grade'] = pd.to_numeric(raw_data['Verified Grade'], errors = 'coerce', downcast = 'float')
 
 #If a student earned an F, their credits are listed as 0. 
@@ -18,6 +18,9 @@ raw_data.loc[
     (
         (raw_data['Dept'].str.contains('BL')) & 
         (raw_data['Course Number'].str.contains('254|274|276')) 
+    ) &
+    (
+        (raw_data['Verified Grade'] == '0.00')
     ), 
     'Completed Credits'
 ] = 3.000
@@ -30,7 +33,10 @@ raw_data.loc[
     (
         (raw_data['Dept'].str.contains('BL')) & 
         (raw_data['Course Number'].str.contains('255|275|277')) 
-    ), 
+    ) &
+    (
+        (raw_data['Verified Grade'] == '0.00')
+    ),  
     'Completed Credits'
 ] = 1.000
 
@@ -48,6 +54,9 @@ result = []
 #Iterate through each group
 for student_id, group_data in grouped_data:
     #calculations to create each variable
+
+    #gpa keep the same
+    gpa = group_data['Cum GPA'].iloc[0]
     
     #entry cohort
     def cohort_check(entry_data):
@@ -70,11 +79,16 @@ for student_id, group_data in grouped_data:
 
     entry_cohort = cohort_check(group_data['Entry Cohort'].iloc[0])
 
-    #science gpa
-    science_gpa = 'ncy'
+    #science gpa, exclude NaN
+    science_courses = group_data.loc[
+    (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & 
+    group_data['Verified Grade'].notna()  
+    ]
 
-    #admission check
-    admission_check = 'ncy'
+    weighted_sum = (science_courses['Verified Grade'] * science_courses['Completed Credits']).sum()
+    total_credits = science_courses['Completed Credits'].sum()
+
+    science_gpa = (weighted_sum/total_credits).round(2) if total_credits != 0 else 'N/A'
 
     #rcc check
     rcc_check = 'yes' if (((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200'))) 
@@ -84,43 +98,54 @@ for student_id, group_data in grouped_data:
     #any grades lower than a c
     all_grade_check ='yes' if (group_data['Verified Grade'] < 3).any() else 'no'
 
-    #variables needed for both grade checks
-    dept_course = group_data['Dept'] + group_data['Course Number']
-
     #list of classes lower than a c
-    classes_below_c = group_data.loc[group_data['Verified Grade'] < 3, ['Dept', 'Course Number']]
+    classes_below_c = group_data.loc[(group_data['Verified Grade'] < 3) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
 
     #concat Dept and Course Number
     classes_below_c = classes_below_c['Dept'] + classes_below_c['Course Number']
 
     #convert list into comma separated string or none
-    classes_below_c = ', '.join(classes_below_c.tolist()) if not classes_below_c.empty else 'none'
+    classes_below_c = ', '.join(classes_below_c.tolist()) if not classes_below_c.empty else ''
 
     #science grades lower than a c
     science_grade_check = 'yes' if ((group_data['Verified Grade'] < 3) 
                                     & ((group_data['Dept'].str.contains('BL')) | (group_data['Dept'].str.contains('CH')))).any() else 'no'
    
     #list of science classes lower than a c
-    science_below_c = group_data.loc[((group_data['Verified Grade']) < 3) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')), ['Dept', 'Course Number']]
+    science_below_c = group_data.loc[((group_data['Verified Grade']) < 3) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
     science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
-    science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else 'none'
+    science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else ''
     
     #minor
     minor = group_data['Added Minor'].iloc[0]
     
+    # completed 6 out of 8 science courses?
+    science_c_or_above = group_data.loc[((group_data['Verified Grade']) >= 3) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
+    science_c_or_above = science_c_or_above['Dept'] + science_c_or_above['Course Number']
+
+    #science_c_or_above = ', '.join(science_c_or_above.tolist()) if not science_c_or_above.empty else ''
+
+
+
     #completed all 8 science courses? missing which?
     science_8_check = 'ncy'
     
     #withdrawn from any classes? which?
-    withdrawn = 'ncy'
+    withdrawn = group_data.loc[group_data['Verified Grade'] == 7, ['Dept', 'Course Number']]
+    withdrawn = withdrawn['Dept'] + withdrawn['Course Number']
+    withdrawn = ', '.join(withdrawn.tolist()) if not withdrawn.empty else ''
     
     #registered for remaining science courses?
     registered = 'ncy'
 
+    #admission check
+    admission_check = 'no' if entry_cohort == 'TRANSFER' else ''
+
     #result as key and value pairs
     result.append(
         {'Student ID#': student_id, 
-         'Entry Cohort': entry_cohort, 
+         'Entry Cohort': entry_cohort,
+         'Cumulative GPA': gpa, 
          'Science GPA': science_gpa, 
          'Guaranteed Admission': admission_check, 
          'RCC 200': rcc_check, 
