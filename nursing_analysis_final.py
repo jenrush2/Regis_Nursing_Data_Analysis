@@ -72,33 +72,48 @@ for student_id, group_data in grouped_data:
 
     #science gpa
     science_gpa = 'ncy'
+
     #admission check
     admission_check = 'ncy'
+
     #rcc check
-    rcc_check = 'ncy'
+    rcc_check = 'yes' if (((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200'))) 
+                            & (group_data['Verified Grade'] >= 3)).any() else 'no'
+
+
     #any grades lower than a c
     all_grade_check ='yes' if (group_data['Verified Grade'] < 3).any() else 'no'
+
     #variables needed for both grade checks
     dept_course = group_data['Dept'] + group_data['Course Number']
+
     #list of classes lower than a c
     classes_below_c = group_data.loc[group_data['Verified Grade'] < 3, ['Dept', 'Course Number']]
+
     #concat Dept and Course Number
     classes_below_c = classes_below_c['Dept'] + classes_below_c['Course Number']
+
     #convert list into comma separated string or none
     classes_below_c = ', '.join(classes_below_c.tolist()) if not classes_below_c.empty else 'none'
+
     #science grades lower than a c
     science_grade_check = 'yes' if ((group_data['Verified Grade'] < 3) 
                                     & ((group_data['Dept'].str.contains('BL')) | (group_data['Dept'].str.contains('CH')))).any() else 'no'
+   
     #list of science classes lower than a c
     science_below_c = group_data.loc[((group_data['Verified Grade']) < 3) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')), ['Dept', 'Course Number']]
     science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
     science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else 'none'
+    
     #minor
-    minor = 'ncy'
+    minor = group_data['Added Minor'].iloc[0]
+    
     #completed all 8 science courses? missing which?
     science_8_check = 'ncy'
+    
     #withdrawn from any classes? which?
     withdrawn = 'ncy'
+    
     #registered for remaining science courses?
     registered = 'ncy'
 
@@ -110,13 +125,13 @@ for student_id, group_data in grouped_data:
          'Guaranteed Admission': admission_check, 
          'RCC 200': rcc_check, 
          'Any Grade Lower Than C': all_grade_check, 
-         'Science Grade Lower Than C': science_grade_check, 
-         'Minor': minor, 
+         'Science Grade Lower Than C': science_grade_check,  
          'Science Classes Completed': science_8_check, 
          'Withdrawn': withdrawn, 
          'Registered for Remaining': registered,
          'Science Classes Lower Than C': science_below_c,
-         'Classes Lower Than C': classes_below_c}
+         'Classes Lower Than C': classes_below_c,
+         'Minor': minor,}
          )
 
 #result to a new dataframe
