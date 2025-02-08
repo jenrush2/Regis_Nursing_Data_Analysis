@@ -76,7 +76,7 @@ for student_id, group_data in grouped_data:
     admission_check = 'ncy'
     #rcc check
     rcc_check = 'ncy'
-    #any grades lower than a c and which ones
+    #any grades lower than a c
     all_grade_check ='yes' if (group_data['Verified Grade'] < 3).any() else 'no'
     #variables needed for both grade checks
     dept_course = group_data['Dept'] + group_data['Course Number']
@@ -86,8 +86,13 @@ for student_id, group_data in grouped_data:
     classes_below_c = classes_below_c['Dept'] + classes_below_c['Course Number']
     #convert list into comma separated string or none
     classes_below_c = ', '.join(classes_below_c.tolist()) if not classes_below_c.empty else 'none'
-    #science grades lower than a c and which ones
-    science_grade_check = 'ncy'
+    #science grades lower than a c
+    science_grade_check = 'yes' if ((group_data['Verified Grade'] < 3) 
+                                    & ((group_data['Dept'].str.contains('BL')) | (group_data['Dept'].str.contains('CH')))).any() else 'no'
+    #list of science classes lower than a c
+    science_below_c = group_data.loc[((group_data['Verified Grade']) < 3) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')), ['Dept', 'Course Number']]
+    science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
+    science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else 'none'
     #minor
     minor = 'ncy'
     #completed all 8 science courses? missing which?
@@ -109,8 +114,9 @@ for student_id, group_data in grouped_data:
          'Minor': minor, 
          'Science Classes Completed': science_8_check, 
          'Withdrawn': withdrawn, 
-         'Registered for Remaining': registered},
-         'Classes Lower Than C': classes_below_c
+         'Registered for Remaining': registered,
+         'Science Classes Lower Than C': science_below_c,
+         'Classes Lower Than C': classes_below_c}
          )
 
 #result to a new dataframe
