@@ -1,4 +1,6 @@
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 
 
 raw_data = pd.read_excel("/Users/jenniferrush/Python/Regis_Nursing_Analysis/data/nursing_data.xlsx", sheet_name="IDS - Regis College - Pre-Nursi")
@@ -198,11 +200,45 @@ for student_id, group_data in grouped_data:
 #result to a new dataframe
 nursing_final = pd.DataFrame(result)
 
+#drop ID numbers and use openpyxl to export
+nursing_final.to_excel('nursing_analysis_final.xlsx', index=False, engine='openpyxl')
+
+#load the workbook and select active sheet
+wb = load_workbook('nursing_analysis_final.xlsx')
+ws = wb.active
+
+#define a yellow fill pattern
+yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+
+#map column names to their index
+header = {cell.value: cell.column for cell in ws[1]}
+
+#loop through columns we want highlighting in
+for row in range(2, ws.max_row + 1):  # start from row 2 to skip header
+    #adjust column index
+    any_grade_cell = ws.cell(row=row, column=header.get('Any Grade Lower Than C')) 
+    overall_gpa_cell = ws.cell(row=row, column=header.get("Cumulative GPA"))
+    science_grade_cell = ws.cell(row=row, column=header.get('Science Grade Lower Than C'))
+    science_gpa_cell = ws.cell(row=row, column=header.get('Science GPA'))
+    entry_cohort_cell = ws.cell(row=row, column=header.get('Entry Cohort'))
+    guaranteed_admission_cell = ws.cell(row=row, column=header.get('Guaranteed Admission'))
+
+    #apply yellow fill if conditions are met
+    if any_grade_cell.value == 'yes':
+        any_grade_cell.fill = yellow_fill
+    if overall_gpa_cell.value < 3.25:
+        overall_gpa_cell.fill = yellow_fill
+    if science_grade_cell.value == 'yes':
+        science_grade_cell.fill = yellow_fill
+    if science_gpa_cell.value < 3.25:
+        science_gpa_cell.fill = yellow_fill
+    if entry_cohort_cell.value == 'TRANSFER':
+        entry_cohort_cell.fill = yellow_fill
+    if guaranteed_admission_cell.value == 'no':
+        guaranteed_admission_cell.fill = yellow_fill
 
 
-#print(nursing_final[['Student ID#', 'Entry Cohort', 'Any Grade Lower Than C']].head(50))
-#print(nursing_final[['Student ID#', 'Entry Cohort', 'Any Grade Lower Than C']].sample(50))
 
-#when you're done, drop ID numbers
-nursing_final.to_excel('nursing_analysis_final.xlsx', index=False)
+# save the formatted workbook
+wb.save('nursing_final_analysis_highlighted.xlsx')
 
