@@ -90,6 +90,7 @@ for student_id, group_data in grouped_data:
     weighted_sum = (science_courses['Verified Grade'] * science_courses['Completed Credits']).sum()
     total_credits = science_courses['Completed Credits'].sum()
 
+    #for some reason this was rounding at the beginning, but is no longer rounding...
     science_gpa = (weighted_sum/total_credits).round(2) if total_credits != 0 else 0.00
 
     
@@ -168,8 +169,9 @@ for student_id, group_data in grouped_data:
     #registered for remaining science courses?
     registered = 'ncy'
 
+    #Check with Lynetta for all requirements for admission check(like overal gpa, registered for remaining, etc.)
     #admission check
-    admission_check = 'no' if ((entry_cohort == 'TRANSFER') | (science_6_check == 'no') | (science_gpa < 3.25) | (rcc_check == 'no')) else ''
+    admission_check = 'no' if ((entry_cohort == 'TRANSFER') | (science_6_check == 'no') | (science_gpa < 3.25)| (gpa < 3.25) | (rcc_check == 'no')) else ''
 
     science_gpa = round(science_gpa, 2)
 
