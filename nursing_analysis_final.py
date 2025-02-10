@@ -44,12 +44,6 @@ raw_data.loc[
     'Completed Credits'
 ] = 1.000
 
-#Check stuff
-# print(raw_data.sample(50))
-# print(raw_data.dtypes)
-# has a student that earned an F in science course to confirm credit change
-# print(raw_data[1608:1612])
-
 #Group by Student ID#
 grouped_data = raw_data.groupby('Student ID#')
 
@@ -97,16 +91,16 @@ for student_id, group_data in grouped_data:
 
     
 
-    #rcc check
+    #earn a c or higher in RCC200
     rcc_check = 'yes' if (((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200'))) 
-                            & (group_data['Verified Grade'] >= 3)).any() else 'no'
+                            & (group_data['Verified Grade'] >= 2)).any() else 'no'
 
 
     #any grades lower than a c
-    all_grade_check ='yes' if (group_data['Verified Grade'] < 3).any() else 'no'
+    all_grade_check ='yes' if (group_data['Verified Grade'] < 2).any() else 'no'
 
     #list of classes lower than a c
-    classes_below_c = group_data.loc[(group_data['Verified Grade'] < 3) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
+    classes_below_c = group_data.loc[(group_data['Verified Grade'] < 2) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
 
     #concat Dept and Course Number
     classes_below_c = classes_below_c['Dept'] + classes_below_c['Course Number']
@@ -115,11 +109,11 @@ for student_id, group_data in grouped_data:
     classes_below_c = ', '.join(classes_below_c.tolist()) if not classes_below_c.empty else ''
 
     #science grades lower than a c
-    science_grade_check = 'yes' if ((group_data['Verified Grade'] < 3) 
+    science_grade_check = 'yes' if ((group_data['Verified Grade'] < 2) 
                                     & ((group_data['Dept'].str.contains('BL')) | (group_data['Dept'].str.contains('CH')))).any() else 'no'
    
     #list of science classes lower than a c
-    science_below_c = group_data.loc[((group_data['Verified Grade']) < 3) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
+    science_below_c = group_data.loc[((group_data['Verified Grade']) < 2) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
     science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
     science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else ''
     
@@ -129,7 +123,7 @@ for student_id, group_data in grouped_data:
     # completed 6 out of 8 science courses?
     # Select specific science courses where the student earned C or above
     science_c_or_above = group_data.loc[
-    (group_data['Verified Grade'] >= 3) 
+    (group_data['Verified Grade'] >= 2) 
     & (
         ((group_data['Dept'].str.contains('CH', na=False)) & 
          (group_data['Course Number'].str.contains('206A|207A', na=False))) 
@@ -169,13 +163,34 @@ for student_id, group_data in grouped_data:
     withdrawn = ', '.join(withdrawn.tolist()) if not withdrawn.empty else ''
     
     #registered for remaining science courses?
-    registered = 'ncy'
+    #check for courses from the science_remaining list AND empty verfied grade column
+    registered_science_classes = group_data.loc[
+        (group_data['Verified Grade'].isnull())
+        & (
+        ((group_data['Dept'].str.contains('CH', na=False)) & 
+         (group_data['Course Number'].str.contains('206A|207A', na=False))) 
+        | 
+        ((group_data['Dept'].str.contains('BL', na=False)) & 
+         (group_data['Course Number'].str.contains('254|255|274|275|276|277', na=False)))
+        )
+        ]
+    
+    registered_science_classes = registered_science_classes['Dept'] + registered_science_classes['Course Number']
+    registered_science_classes = ', '.join(registered_science_classes.tolist()) if not registered_science_classes.empty else ''
+    #make sure both string lists are converted to sets
+    registered_science_set = set(registered_science_classes.split(', ')) if registered_science_classes else set()
+    science_remaining_set = set(science_remaining.split(', ')) if science_remaining else set()
+    
+    if not science_remaining:
+        registered = ''
+    else: 
+        registered = 'yes' if set(registered_science_classes) == set(science_remaining) else 'no'
+        
 
     #Check with Lynetta for all requirements for admission check(like overal gpa, registered for remaining, etc.)
     #admission check
     admission_check = 'no' if ((entry_cohort == 'TRANSFER') | (science_6_check == 'no') | (science_gpa < 3.25)| (gpa < 3.25) | (rcc_check == 'no')) else ''
 
-    science_gpa = round(science_gpa, 2)
 
     #result as key and value pairs
     result.append(
