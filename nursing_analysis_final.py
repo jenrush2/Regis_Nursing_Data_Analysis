@@ -53,6 +53,11 @@ result = []
 for student_id, group_data in grouped_data:
     #calculations to create each variable
 
+    #when there are name colums, keep them the same
+    #first_name = group_data['First Name'].iloc[0]
+    #last_name = group_data['Last Name'].iloc[0]
+
+
     #gpa keep the same
     gpa = group_data['Cum GPA'].iloc[0]
     
@@ -194,7 +199,9 @@ for student_id, group_data in grouped_data:
 
     #result as key and value pairs
     result.append(
-        {'Student ID#': student_id, 
+        {'Student ID#': student_id,
+         #'First Name': first_name,
+         #'Last Name': last_name, 
          'Entry Cohort': entry_cohort,
          'Cumulative GPA': gpa, 
          'Science GPA': science_gpa, 
