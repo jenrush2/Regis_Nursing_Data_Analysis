@@ -125,7 +125,8 @@ for student_id, group_data in grouped_data:
     #minor
     minor = group_data['Added Minor'].iloc[0]
     
-    # completed 6 out of 8 science courses?
+    # completed 6 out of 8 science courses
+    # currently only checking for classes taken at Regis
     # Select specific science courses where the student earned C or above
     science_c_or_above = group_data.loc[
     (group_data['Verified Grade'] >= 2) 
@@ -162,6 +163,11 @@ for student_id, group_data in grouped_data:
     science_remaining = list(set(all_science_classes_list) - completed_science_courses)
     science_remaining = ', '.join(science_remaining) if science_remaining else ''
     
+    # List of science classes not taken at Regis
+    science_non_regis = group_data.loc[(group_data['Dept'].str.contains(r'\*', na=False)) & (group_data['Dept'].str.contains('CH|BL')), ['Dept']]
+    science_non_regis = science_non_regis['Dept']
+    science_non_regis = ', '.join(science_non_regis.dropna()) if not science_non_regis.empty else ''
+    
     #withdrawn from any classes? which?
     withdrawn = group_data.loc[group_data['Verified Grade'] == 7, ['Dept', 'Course Number']]
     withdrawn = withdrawn['Dept'] + withdrawn['Course Number']
@@ -194,8 +200,13 @@ for student_id, group_data in grouped_data:
         
 
     #Check with Lynetta for all requirements for admission check(like overal gpa, registered for remaining, etc.)
-    #admission check
-    admission_check = 'no' if ((entry_cohort == 'TRANSFER') | (science_6_check == 'no') | (science_gpa < 3.25)| (gpa < 3.25) | (rcc_check == 'no') | (withdrawn != '')) else ''
+    admission_check = 'no' if (
+        (entry_cohort == 'TRANSFER') 
+        | (science_6_check == 'no') 
+        | (science_gpa < 3.25)
+        | (gpa < 3.25) | (rcc_check == 'no')
+        | (all_grade_check == 'yes') 
+        | (withdrawn != '')) else ''
 
 
     #result as key and value pairs
@@ -217,6 +228,7 @@ for student_id, group_data in grouped_data:
          'Registered for Remaining': registered,
          'Science Classes Lower Than C': science_below_c,
          'Classes Lower Than C': classes_below_c,
+         'Science Classes Not at Regis': science_non_regis,
          'Minor': minor,}
          )
 
