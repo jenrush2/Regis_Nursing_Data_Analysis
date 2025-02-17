@@ -167,6 +167,7 @@ for student_id, group_data in grouped_data:
     withdrawn = withdrawn['Dept'] + withdrawn['Course Number']
     withdrawn = ', '.join(withdrawn.tolist()) if not withdrawn.empty else ''
     
+    
     #registered for remaining science courses?
     #check for courses from the science_remaining list AND empty verfied grade column
     registered_science_classes = group_data.loc[
@@ -194,7 +195,7 @@ for student_id, group_data in grouped_data:
 
     #Check with Lynetta for all requirements for admission check(like overal gpa, registered for remaining, etc.)
     #admission check
-    admission_check = 'no' if ((entry_cohort == 'TRANSFER') | (science_6_check == 'no') | (science_gpa < 3.25)| (gpa < 3.25) | (rcc_check == 'no')) else ''
+    admission_check = 'no' if ((entry_cohort == 'TRANSFER') | (science_6_check == 'no') | (science_gpa < 3.25)| (gpa < 3.25) | (rcc_check == 'no') | (withdrawn != '')) else ''
 
 
     #result as key and value pairs
