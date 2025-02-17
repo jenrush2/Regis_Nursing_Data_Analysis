@@ -113,9 +113,9 @@ for student_id, group_data in grouped_data:
 
     #earn a c or higher in RCC200
     rcc_check = 'yes' if (
-        ((group_data['Dept'].str.contains('RCC')) 
-        & (group_data['Course Number'].str.contains('200'))) 
-                            & (group_data['Verified Grade'] >= 2)).any() else 'no'
+        (((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200'))) 
+        | (group_data['Dept'].str.contains('RCC')) & (group_data['Dept'].str.contains('200'))) #includes transfer class where RCC and 200 are in the Dept column
+        & (group_data['Verified Grade'] >= 2)).any() else 'no'
 
 
     #any grades lower than a c
