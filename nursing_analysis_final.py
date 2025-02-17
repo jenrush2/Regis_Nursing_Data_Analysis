@@ -20,8 +20,16 @@ raw_data.loc[
         (raw_data['Course Number'].str.contains('206A'))
     ) | 
     (
+        (raw_data['Dept'].str.contains('CH*206A')) #includes if taken this class outside of regis
+    ) |
+    (
+        (raw_data['Dept'].str.contains('BL')) & 
+        (raw_data['Dept'].str.contains('254|274|276')) #for transfer credits the # is in Dept instead of Course Number 
+    ) |
+    (
         (raw_data['Dept'].str.contains('BL')) & 
         (raw_data['Course Number'].str.contains('254|274|276')) 
+        
     ) &
     (
         (raw_data['Verified Grade'] == '0.00')
@@ -35,8 +43,15 @@ raw_data.loc[
         (raw_data['Course Number'].str.contains('207A'))
     ) | 
     (
+        (raw_data['Dept'].str.contains('CH*207A')) #includes if taken this class outside of regis
+    ) |
+    (
         (raw_data['Dept'].str.contains('BL')) & 
         (raw_data['Course Number'].str.contains('255|275|277')) 
+    ) |
+    (
+        (raw_data['Dept'].str.contains('BL')) & 
+        (raw_data['Dept'].str.contains('255|275|277')) #for transfer credits the # is in Dept instead of Course Number 
     ) &
     (
         (raw_data['Verified Grade'] == '0.00')
@@ -97,7 +112,9 @@ for student_id, group_data in grouped_data:
     
 
     #earn a c or higher in RCC200
-    rcc_check = 'yes' if (((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200'))) 
+    rcc_check = 'yes' if (
+        ((group_data['Dept'].str.contains('RCC')) 
+        & (group_data['Course Number'].str.contains('200'))) 
                             & (group_data['Verified Grade'] >= 2)).any() else 'no'
 
 
@@ -205,7 +222,8 @@ for student_id, group_data in grouped_data:
         | (science_6_check == 'no') 
         | (science_gpa < 3.25)
         | (gpa < 3.25) | (rcc_check == 'no')
-        | (all_grade_check == 'yes') 
+        | (all_grade_check == 'yes')
+        | (science_non_regis != '') 
         | (withdrawn != '')) else ''
 
 
