@@ -59,10 +59,19 @@ raw_data.loc[
     'Completed Credits'
 ] = 1.000
 
+
+
+
+
+
 #Group by Student ID#
 grouped_data = raw_data.groupby('Student ID#')
 
 result = []
+
+
+
+
 
 #Iterate through each group
 for student_id, group_data in grouped_data:
@@ -73,9 +82,11 @@ for student_id, group_data in grouped_data:
     #last_name = group_data['Last Name'].iloc[0]
 
 
+
     #gpa keep the same
     gpa = group_data['Cum GPA'].iloc[0]
     
+
     #entry cohort
     def cohort_check(entry_data):
 
@@ -97,6 +108,8 @@ for student_id, group_data in grouped_data:
 
     entry_cohort = cohort_check(group_data['Entry Cohort'].iloc[0])
 
+
+
     #science gpa, exclude NaN
     science_courses = group_data.loc[
     (group_data['Dept'].str.contains('BL|CH', na=False)) & 
@@ -111,14 +124,22 @@ for student_id, group_data in grouped_data:
 
     
 
+
+
     #earn a c or higher in RCC200
     rcc_check = 'yes' if (
         ((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200')))
         & (group_data['Verified Grade'] >= 2)).any() else 'no'
 
 
+
+
     #any grades lower than a c
     all_grade_check ='yes' if (group_data['Verified Grade'] < 2).any() else 'no'
+
+
+
+
 
     #list of classes lower than a c
     classes_below_c = group_data.loc[(group_data['Verified Grade'] < 2) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
@@ -129,22 +150,38 @@ for student_id, group_data in grouped_data:
     #convert list into comma separated string or none
     classes_below_c = ', '.join(classes_below_c.tolist()) if not classes_below_c.empty else ''
 
-    #science grades lower than a c
+
+
+
+
+    #science grades lower than a c, will include transfer classes
     science_grade_check = 'yes' if ((group_data['Verified Grade'] < 2) 
                                     & ((group_data['Dept'].str.contains('BL')) | (group_data['Dept'].str.contains('CH')))).any() else 'no'
    
-    #list of science classes lower than a c
+
+
+
+    #list of science classes lower than a c, will include transfer classes and will still have the * so you know it was a transfer
     science_below_c = group_data.loc[((group_data['Verified Grade']) < 2) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
     science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
     science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else ''
     
+
+
+
+
     #minor
     minor = group_data['Added Minor'].iloc[0]
     
+
+
+
+
+
     # completed 6 out of 8 science courses
-    # currently only checking for classes taken at Regis
+    # this one only checks for classes taken at Regis
     # Select specific science courses where the student earned C or above
-    science_c_or_above = group_data.loc[
+    science_at_regis_c_or_above = group_data.loc[
     (group_data['Verified Grade'] >= 2) 
     & (
         ((group_data['Dept'].str.contains('CH', na=False)) & 
@@ -158,31 +195,52 @@ for student_id, group_data in grouped_data:
 ]
 
     # Concatenate 'Dept' and 'Course Number' columns
-    science_c_or_above = science_c_or_above['Dept'] + science_c_or_above['Course Number']
+    science_at_regis_c_or_above = science_at_regis_c_or_above['Dept'] + science_at_regis_c_or_above['Course Number']
 
     # Convert list to a string with courses separated by ", " or empty string if no courses
-    science_c_or_above = ', '.join(science_c_or_above.tolist()) if not science_c_or_above.empty else ''
+    science_at_regis_c_or_above = ', '.join(science_at_regis_c_or_above.tolist()) if not science_at_regis_c_or_above.empty else ''
 
-    # Count the number of courses completed
-    science_6_check = 'yes' if len(science_c_or_above.split(', ')) >= 6 else 'no'
+    
+    science_6_at_regis_check = 'yes' if len(science_at_regis_c_or_above.split(', ')) >= 6 else 'no'
 
-    #completed all 8 science courses? missing which?
-    science_8_check = 'yes' if len(science_c_or_above.split(', ')) >= 8 else 'no'
+    
+    science_8_at_regis_check = 'yes' if len(science_at_regis_c_or_above.split(', ')) >= 8 else 'no'
 
-    # List of required science courses
-    all_science_classes_list = ['CH206A', 'CH207A', 'BL254', 'BL255', 'BL274', 'BL275', 'BL276', 'BL277']
+   
+   
+   
+
+   
+   
+    # List of required science courses, does not include transfer classes
+    all_science_classes_list_regis = ['CH206A', 'CH207A', 'BL254', 'BL255', 'BL274', 'BL275', 'BL276', 'BL277']
 
     # Convert completed courses into a set
-    completed_science_courses = set(science_c_or_above.split(', ')) if science_c_or_above else set()
+    completed_science_courses_at_regis = set(science_at_regis_c_or_above.split(', ')) if science_at_regis_c_or_above else set()
 
-    # Find missing courses
-    science_remaining = list(set(all_science_classes_list) - completed_science_courses)
-    science_remaining = ', '.join(science_remaining) if science_remaining else ''
+    # Find missing courses, lists transfer classes as missing
+    science_at_regis_remaining = list(set(all_science_classes_list_regis) - completed_science_courses_at_regis)
+    science_at_regis_remaining = ', '.join(science_at_regis_remaining) if science_at_regis_remaining else ''
+    
+    
+    
+    
+    
     
     # List of science classes not taken at Regis
     science_non_regis = group_data.loc[(group_data['Dept'].str.contains(r'\*', na=False)) & (group_data['Dept'].str.contains('CH|BL')), ['Dept']]
     science_non_regis = science_non_regis['Dept']
     science_non_regis = ', '.join(science_non_regis.dropna()) if not science_non_regis.empty else ''
+    
+    
+    
+    
+    
+    
+    
+    
+    #science 6 and science 8 check but includes transfer credits
+
     
     #withdrawn from any classes? which?
     withdrawn = group_data.loc[group_data['Verified Grade'] == 7, ['Dept', 'Course Number']]
@@ -207,18 +265,18 @@ for student_id, group_data in grouped_data:
     registered_science_classes = ', '.join(registered_science_classes.tolist()) if not registered_science_classes.empty else ''
     #make sure both string lists are converted to sets
     registered_science_set = set(registered_science_classes.split(', ')) if registered_science_classes else set()
-    science_remaining_set = set(science_remaining.split(', ')) if science_remaining else set()
+    science_at_regis_remaining = set(science_at_regis_remaining.split(', ')) if science_at_regis_remaining else set()
     
-    if not science_remaining:
+    if not science_at_regis_remaining:
         registered = ''
     else: 
-        registered = 'yes' if set(registered_science_classes) == set(science_remaining) else 'no'
+        registered = 'yes' if set(registered_science_classes) == set(science_at_regis_remaining) else 'no'
         
 
     #Check with Lynetta for all requirements for admission check(like overal gpa, registered for remaining, etc.)
     admission_check = 'no' if (
         (entry_cohort == 'TRANSFER') 
-        | (science_6_check == 'no') 
+        | (science_6_at_regis_check == 'no') 
         | (science_gpa < 3.25)
         | (gpa < 3.25) | (rcc_check == 'no')
         | (all_grade_check == 'yes')
@@ -239,9 +297,12 @@ for student_id, group_data in grouped_data:
          'Any Grade Lower Than C': all_grade_check, 
          'Science Grade Lower Than C': science_grade_check,
          'Withdrawn': withdrawn,
-         '6 of 8 Science Classes Completed': science_6_check,  
-         'All 8 Science Classes Completed': science_8_check, 
-         'Science Classes Remaining': science_remaining,
+         '6 of 8 Science Classes Completed at Regis': science_6_at_regis_check,  
+         'All 8 Science Classes Completed at Regis': science_8_at_regis_check,
+         #'6 of 8 Science Classes Completed inc Trans': science_6_check, #includes if the class was taken not at regis
+         #'All 8 Science Classes Completed inc Trans': science_8_check, #includes if theclass was taken not at regis
+         #'Science Classes Remaining inc Trans': science_remaining, #will not include a class as remaining if the student passed it somewhere else
+         'Science Classes Remaining': science_at_regis_remaining, #will list classes that the students have taken somewhere else
          'Registered for Remaining': registered,
          'Science Classes Lower Than C': science_below_c,
          'Classes Lower Than C': classes_below_c,
