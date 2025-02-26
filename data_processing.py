@@ -22,7 +22,6 @@ def load_raw_data(file_path, sheet_name):
 
 def keep_column(group_data, column_name):
     column_value = group_data[column_name].iloc[0]
-
     return '' if pd.isna(column_value) else str(column_value)
 
 def calculate_science_gpa(group_data):
@@ -63,4 +62,7 @@ def get_classes_below_c(group_data):
     return ', '.join((classes['Dept'] + classes['Course Number']).tolist()) if not classes.empty else ''
 
 
-
+def rcc_check(group_data):
+    return 'yes' if (
+        ((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200')))
+        & (group_data['Verified Grade'] >= 2)).any() else 'no'
