@@ -21,7 +21,9 @@ def load_raw_data(file_path, sheet_name):
 
 
 def keep_column(group_data, column_name):
-    column_name = group_data[column_name].iloc[0]
+    column_value = group_data[column_name].iloc[0]
+
+    return '' if pd.isna(column_value) else str(column_value)
 
 def calculate_science_gpa(group_data):
     #Calculate the science GPA for a student.
