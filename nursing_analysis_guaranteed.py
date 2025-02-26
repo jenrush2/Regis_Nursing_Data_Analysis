@@ -1,5 +1,5 @@
 import pandas as pd
-from data_processing import load_raw_data, calculate_science_gpa, cohort_check, has_low_grade, get_classes_below_c
+from data_processing import *
 
 #example layout, not yet final or applicable to actual guaranteed admission requriements -- just trying to see how things would look with this method
 
@@ -13,14 +13,18 @@ grouped_data = raw_data.groupby('Student ID#')
 result = []
 
 for student_id, group_data in grouped_data:
+    #first_name = keep_column(group_data, 'First Name')
+    #last_name = keep_column(group_data, 'Last Name')
     entry_cohort = cohort_check(group_data['Entry Cohort'].iloc[0])
-    gpa = group_data['Cum GPA'].iloc[0]
+    gpa = keep_column(group_data, 'Cum GPA')
     science_gpa = calculate_science_gpa(group_data)
     any_low_grade = has_low_grade(group_data)
     classes_below_c = get_classes_below_c(group_data)
 
     result.append({
         'Student ID#': student_id,
+        #'First Name': first_name,
+        #'Last Name': last_name,
         'Entry Cohort': entry_cohort,
         'Cumulative GPA': gpa,
         'Science GPA': science_gpa,
