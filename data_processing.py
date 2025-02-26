@@ -20,6 +20,9 @@ def load_raw_data(file_path, sheet_name):
     return raw_data
 
 
+def keep_column(group_data, column_name):
+    column_name = group_data[column_name].iloc[0]
+
 def calculate_science_gpa(group_data):
     #Calculate the science GPA for a student.
     science_courses = group_data.loc[
