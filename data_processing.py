@@ -66,3 +66,9 @@ def rcc_check(group_data):
     return 'yes' if (
         ((group_data['Dept'].str.contains('RCC')) & (group_data['Course Number'].str.contains('200')))
         & (group_data['Verified Grade'] >= 2)).any() else 'no'
+
+
+def science_grade_check_inc_trans(group_data):
+    #science grades lower than a c, will include transfer classes
+    return 'yes' if ((group_data['Verified Grade'] < 2) 
+        & ((group_data['Dept'].str.contains('BL')) | (group_data['Dept'].str.contains('CH')))).any() else 'no'
