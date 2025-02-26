@@ -72,3 +72,11 @@ def science_grade_check_inc_trans(group_data):
     #science grades lower than a c, will include transfer classes
     return 'yes' if ((group_data['Verified Grade'] < 2) 
         & ((group_data['Dept'].str.contains('BL')) | (group_data['Dept'].str.contains('CH')))).any() else 'no'
+
+
+def science_below_c_list_inc_trans(group_data):
+    #list of science classes lower than a c, will include transfer classes and will still have the * so you know it was a transfer
+    science_below_c = group_data.loc[((group_data['Verified Grade']) < 2) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
+    science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
+    science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else ''
+    return science_below_c
