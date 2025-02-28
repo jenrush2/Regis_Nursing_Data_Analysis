@@ -115,3 +115,18 @@ def science_6_at_regis_check(group_data):
 def science_8_at_regis_check(group_data):
     science_at_regis_c_or_higher = science_at_regis_c_or_above(group_data)
     return 'yes' if len(science_at_regis_c_or_higher.split(', ')) >= 8 else 'no'
+
+
+# List of required science courses, does not include transfer classes
+all_science_classes_list_regis = ['CH206A', 'CH207A', 'BL254', 'BL255', 'BL274', 'BL275', 'BL276', 'BL277']
+all_science_classes_incl_trans = ['CH206A', 'CH207A', 'BL254', 'BL255', 'BL274', 'BL275', 'BL276', 'BL277', 'CH*206A', 'CH*207A', 'BL*254', 'BL*255', 'BL*274', 'BL*275', 'BL*276', 'BL*277']
+
+def science_at_regis_remaining(group_data):
+    # Convert completed courses into a set
+    completed_science_courses_at_regis = science_at_regis_c_or_above(group_data)
+    completed_science_courses_at_regis = set(completed_science_courses_at_regis.split(', ')) if completed_science_courses_at_regis else set()
+
+    # Find missing courses, lists transfer classes as missing
+    science_at_regis_remaining = list(set(all_science_classes_list_regis) - completed_science_courses_at_regis)
+    science_at_regis_remaining = ', '.join(science_at_regis_remaining) if science_at_regis_remaining else ''
+    return science_at_regis_remaining
