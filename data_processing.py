@@ -80,3 +80,38 @@ def science_below_c_list_inc_trans(group_data):
     science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
     science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else ''
     return science_below_c
+
+
+def science_at_regis_c_or_above(group_data):
+    # this one only checks for classes taken at Regis
+    # Select specific science courses where the student earned C or above
+    science_at_regis_c_or_above = group_data.loc[
+    (group_data['Verified Grade'] >= 2) 
+    & (
+    ((group_data['Dept'].str.contains('CH', na=False)) & 
+    (group_data['Course Number'].str.contains('206A|207A', na=False))) 
+    | 
+    ((group_data['Dept'].str.contains('BL', na=False)) & 
+    (group_data['Course Number'].str.contains('254|255|274|275|276|277', na=False)))
+    ) 
+    & (group_data['Completed Credits'] > 0.00), 
+    ['Dept', 'Course Number']
+    ]
+
+    # Concatenate 'Dept' and 'Course Number' columns
+    science_at_regis_c_or_above = science_at_regis_c_or_above['Dept'] + science_at_regis_c_or_above['Course Number']
+
+    # Convert list to a string with courses separated by ", " or empty string if no courses
+    science_at_regis_c_or_above = ', '.join(science_at_regis_c_or_above.tolist()) if not science_at_regis_c_or_above.empty else ''
+    
+    return science_at_regis_c_or_above
+
+    
+def science_6_at_regis_check(group_data):
+    science_at_regis_c_or_higher = science_at_regis_c_or_above(group_data)
+    return 'yes' if len(science_at_regis_c_or_higher.split(', ')) >= 6 else 'no'
+
+
+def science_8_at_regis_check(group_data):
+    science_at_regis_c_or_higher = science_at_regis_c_or_above(group_data)
+    return 'yes' if len(science_at_regis_c_or_higher.split(', ')) >= 8 else 'no'
