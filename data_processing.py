@@ -205,3 +205,35 @@ def list_of_withdrawn_classes(group_data):
     withdrawn = withdrawn['Dept'] + withdrawn['Course Number']
     withdrawn = ', '.join(withdrawn.tolist()) if not withdrawn.empty else ''
     return withdrawn
+
+
+def registered_for_remaining_check(group_data):
+    #registered for remaining science courses?
+    #check for courses from the science_remaining list AND empty verfied grade column
+    registered_science_classes = group_data.loc[
+        (group_data['Verified Grade'].isnull())
+        & (
+        ((group_data['Dept'].str.contains('CH', na=False)) & 
+         (group_data['Course Number'].str.contains('206A|207A', na=False))) 
+        | 
+        ((group_data['Dept'].str.contains('BL', na=False)) & 
+         (group_data['Course Number'].str.contains('254|255|274|275|276|277', na=False)))
+        )
+        ]
+    
+    registered_science_classes = registered_science_classes['Dept'] + registered_science_classes['Course Number']
+    registered_science_classes = ', '.join(registered_science_classes.tolist()) if not registered_science_classes.empty else ''
+    
+    #run list of science classes remaining (counts transfer classes as ok)
+    science_at_regis_remaining = science_inc_trans_remaining(group_data)
+    
+    #make sure both string lists are converted to sets
+    registered_science_set = set(registered_science_classes.split(', ')) if registered_science_classes else set()
+    science_at_regis_remaining = set(science_at_regis_remaining.split(', ')) if science_at_regis_remaining else set()
+    
+    if not science_at_regis_remaining:
+        registered = ''
+    else: 
+        registered = 'yes' if registered_science_set == science_at_regis_remaining else 'no'
+        
+    return registered
