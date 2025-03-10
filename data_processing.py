@@ -198,3 +198,10 @@ def list_of_science_transfer_classes(group_data):
     ].dropna()
 
     return ', '.join(science_non_regis) if not science_non_regis.empty else ''
+
+
+def list_of_withdrawn_classes(group_data):
+    withdrawn = group_data.loc[group_data['Verified Grade'] == 7, ['Dept', 'Course Number']].dropna()
+    withdrawn = withdrawn['Dept'] + withdrawn['Course Number']
+    withdrawn = ', '.join(withdrawn.tolist()) if not withdrawn.empty else ''
+    return withdrawn
