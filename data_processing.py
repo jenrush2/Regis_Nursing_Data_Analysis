@@ -190,3 +190,11 @@ def science_inc_trans_remaining(group_data):
     science_remaining = list(set(all_science_classes_list_regis) - completed_science_courses)
     science_remaining = ', '.join(science_remaining) if science_remaining else ''
     return science_remaining
+
+def list_of_science_transfer_classes(group_data):
+    check = r'CH\*206A|CH\*207A|BL\*254|BL\*255|BL\*274|BL\*275|BL\*276|BL\*277'
+    science_non_regis = group_data.loc[
+        group_data['Dept'].str.contains(check, na=False), 'Dept'
+    ].dropna()
+
+    return ', '.join(science_non_regis) if not science_non_regis.empty else ''
