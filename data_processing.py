@@ -252,13 +252,6 @@ def registered_for_remaining_check(group_data):
 
 def guaranteed_admission_check(group_data):
     gpa = group_data['Cum GPA'].iloc[0]
-    # print(f"Check if transfer:{cohort_check(group_data)}")
-    # print(f"Checking student with GPA: {gpa}")
-    # print(f"Science GPA: {calculate_science_gpa(group_data)}")
-    # print(f"Has 6 Regis sciences: {science_6_at_regis_check(group_data)}")
-    # print(f"Has low grade: {has_low_grade(group_data)}")
-    # print(f"Has RCC: {rcc_check(group_data)}")
-    # print(f"Withdrawn from classes: {list_of_withdrawn_classes(group_data)}")
     
     return 'no' if (
         (cohort_check(group_data) == 'TRANSFER') 
