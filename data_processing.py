@@ -36,8 +36,10 @@ def calculate_science_gpa(group_data):
     return (weighted_sum / total_credits).round(2) if total_credits != 0 else 0.00
 
 
-def cohort_check(entry_data):
+def cohort_check(group_data):
     #Determine cohort type based on entry data.
+    entry_data = group_data['Entry Cohort'].iloc[0]
+    
     def year(data):
         return '20' + data[:2]
 
@@ -237,3 +239,32 @@ def registered_for_remaining_check(group_data):
         registered = 'yes' if registered_science_set == science_at_regis_remaining else 'no'
         
     return registered
+
+
+
+# Are students GUARANTEED to be admitted to the BSN program (no transfer credits for science classes allowed)
+# They’ve taken all 4 science classes at Regis
+# They’ve completed RCC200
+# They have a Science GPA of 3.25 or higher
+# They have a cumulative GPA of 3.25 or higher
+# They have a C or higher in all classes
+# They haven’t withdrawn from any classes
+
+def guaranteed_admission_check(group_data):
+    gpa = group_data['Cum GPA'].iloc[0]
+    print(f"Check if transfer:{cohort_check(group_data)}")
+    print(f"Checking student with GPA: {gpa}")
+    print(f"Science GPA: {calculate_science_gpa(group_data)}")
+    print(f"Has 6 Regis sciences: {science_6_at_regis_check(group_data)}")
+    print(f"Has low grade: {has_low_grade(group_data)}")
+    print(f"Has RCC: {rcc_check(group_data)}")
+    print(f"Withdrawn from classes: {list_of_withdrawn_classes(group_data)}")
+    
+    return 'no' if (
+        (cohort_check(group_data) == 'TRANSFER') 
+        | (science_6_at_regis_check(group_data) == 'no') 
+        | (calculate_science_gpa(group_data) < 3.25)
+        | (gpa < 3.25) 
+        | (rcc_check(group_data) == 'no')
+        | (has_low_grade(group_data) == 'yes')
+        | (list_of_withdrawn_classes(group_data) != '')) else 'yes' 
