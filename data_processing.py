@@ -22,7 +22,16 @@ def load_raw_data(file_path, sheet_name):
 
 def keep_column(group_data, column_name):
     column_value = group_data[column_name].iloc[0]
-    return '' if pd.isna(column_value) else str(column_value)
+    
+    if pd.isna(column_value):
+        return ''
+    
+    # Try converting to int or float, otherwise return as string
+    try:
+        num_value = float(column_value)  # Convert to float first
+        return int(num_value) if num_value.is_integer() else num_value  # Convert to int if no decimal
+    except ValueError:
+        return str(column_value)  # Keep as string if conversion fails
 
 def calculate_science_gpa(group_data):
     #Calculate the science GPA for a student.
