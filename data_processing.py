@@ -219,7 +219,7 @@ def list_of_withdrawn_classes(group_data):
 
 
 def registered_for_remaining_check(group_data):
-    #registered for remaining science courses?
+    #registered for remaining science courses? counts transfer classes
     #check for courses from the science_remaining list AND empty verfied grade column
     registered_science_classes = group_data.loc[
         (group_data['Verified Grade'].isnull())
@@ -264,7 +264,7 @@ def guaranteed_admission_check(group_data):
     
     return 'no' if (
         (cohort_check(group_data) == 'TRANSFER') 
-        | (science_6_at_regis_check(group_data) == 'no') 
+        | (science_8_at_regis_check(group_data) == 'no') 
         | (calculate_science_gpa(group_data) < 3.25)
         | (gpa < 3.25) 
         | (rcc_check(group_data) == 'no')
