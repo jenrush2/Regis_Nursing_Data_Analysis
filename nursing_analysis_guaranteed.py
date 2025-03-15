@@ -59,6 +59,7 @@ for student_id, group_data in grouped_data:
         'Entry Cohort': entry_cohort,
         'Cumulative GPA': gpa,
         'Science GPA': science_gpa,
+        'Guaranteed Admission': guaranteed_check,
         'RCC': rcc,
         'Any Grade Lower Than C': any_low_grade,
         'Science Grade Lower Than C': science_grade_check_var,
@@ -70,8 +71,7 @@ for student_id, group_data in grouped_data:
         'List of Science Classes Transferred In': science_non_regis,
         'List of Classes Withdrawn': withdrawn_classes,
         'Registered for Remaining Sci': registered_remaining,
-        'Minor': minor,
-        'Guaranteed Admission': guaranteed_check
+        'Minor': minor
     })
 
 # Convert to DataFrame and save to Excel
