@@ -20,7 +20,18 @@ raw_data = load_raw_data(file_path, sheet_name)
 grouped_data = raw_data.groupby('Student ID#')
 result = []
 
+# Define the cohorts you want to INCLUDE
+included_cohorts = {'Fall 2023', 'Spring 2023'}
+
 for student_id, group_data in grouped_data:
+
+    entry_cohort = cohort_check(group_data)
+
+    # Skip processing if the student's cohort is NOT in the inclusion list
+    if entry_cohort not in included_cohorts:
+        continue
+
+
     #first_name = keep_column(group_data, 'First Name')
     #last_name = keep_column(group_data, 'Last Name')
     entry_cohort = cohort_check(group_data)
@@ -65,20 +76,6 @@ for student_id, group_data in grouped_data:
 
 # Convert to DataFrame and save to Excel
 nursing_final = pd.DataFrame(result)
-
-
-#students that have weird things that I used to check if certain functions were working
-# print(nursing_final[['Student ID#', 'Entry Cohort', 'List of Classes Withdrawn', 'Registered for Remaining Sci', 'Guaranteed Admission']].sample(30))
-# print(nursing_final.loc[nursing_final['Student ID#'].astype(str) == '3050188', ['Student ID#', 'Entry Cohort', 'Guaranteed Admission', 'Registered for Remaining Sci']])
-# print(nursing_final.loc[nursing_final['Student ID#'].astype(str) == '3020523', ['Student ID#', 'Entry Cohort', 'Guaranteed Admission', 'Registered for Remaining Sci']])
-# print(nursing_final.loc[nursing_final['Student ID#'].astype(str) == '3027923', ['Student ID#', 'Entry Cohort', 'Guaranteed Admission', 'Registered for Remaining Sci']])
-# print(nursing_final.loc[nursing_final['Student ID#'].astype(str) == '3042130', ['Student ID#', 'Entry Cohort', 'Guaranteed Admission', 'Registered for Remaining Sci']])
-# print(nursing_final.loc[nursing_final['Guaranteed Admission'].astype(str) == 'yes', ['Student ID#', 'Entry Cohort', 'Guaranteed Admission', 'Registered for Remaining Sci']])
-# print(nursing_final.loc[nursing_final['Student ID#'].astype(str) == '2742697', ['Student ID#', 'Entry Cohort', 'Guaranteed Admission', 'Registered for Remaining Sci']])
-
-
-
-#undo comment when finished
 nursing_final.to_excel('nursing_report_guaranteeed_adm.xlsx', index=False, engine='openpyxl')
 
 
