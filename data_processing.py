@@ -1,23 +1,59 @@
 import pandas as pd
 
+# def load_raw_data(file_path, sheet_name):
+#     #Load and preprocess raw data from an Excel file.
+#     raw_data = pd.read_excel(file_path, sheet_name=sheet_name)
+
+#     # Convert data types
+#     columns_to_string = ['Added Minor', 'Class Level', 'Entry Cohort', 'Enrolled Semester', 'Dept', 'Course Number', 'Course Title']
+#     raw_data[columns_to_string] = raw_data[columns_to_string].astype("string")
+
+#     # Grade conversion
+#     grade_mapping = {'A': '4.000', 'A-': '3.667', 'B+': '3.333', 'B': '3.000', 'B-': '2.667',
+#                      'C+': '2.333', 'C': '2.000', 'C-': '1.667', 'D+': '1.333', 'D': '1.000', 
+#                      'D-': '0.667', 'F': '0.000', 'W': '7'}
+#     raw_data['Verified Grade'] = raw_data['Verified Grade'].replace(grade_mapping)
+#     raw_data['Verified Grade'] = pd.to_numeric(raw_data['Verified Grade'], errors='coerce', downcast='float')
+
+#     raw_data['Completed Credits'] = pd.to_numeric(raw_data['Completed Credits'], errors='coerce', downcast='float')
+
+#     return raw_data
+
+# import pandas as pd
+import re
+
 def load_raw_data(file_path, sheet_name):
-    #Load and preprocess raw data from an Excel file.
+    # Load and preprocess raw data from an Excel file.
     raw_data = pd.read_excel(file_path, sheet_name=sheet_name)
 
     # Convert data types
     columns_to_string = ['Added Minor', 'Class Level', 'Entry Cohort', 'Enrolled Semester', 'Dept', 'Course Number', 'Course Title']
     raw_data[columns_to_string] = raw_data[columns_to_string].astype("string")
 
-    # Grade conversion
+    # Grade conversion mapping
     grade_mapping = {'A': '4.000', 'A-': '3.667', 'B+': '3.333', 'B': '3.000', 'B-': '2.667',
                      'C+': '2.333', 'C': '2.000', 'C-': '1.667', 'D+': '1.333', 'D': '1.000', 
                      'D-': '0.667', 'F': '0.000', 'W': '7'}
-    raw_data['Verified Grade'] = raw_data['Verified Grade'].replace(grade_mapping)
+
+    # Function to map grades, including incomplete grades (I/*)
+    def map_grade(grade):
+        if pd.isna(grade):  # Handle missing values
+            return None
+        grade = str(grade).strip()  # Ensure it's a string and remove extra spaces
+        if re.match(r'^I/[A-DF][+-]?$', grade):  # Match "I/A", "I/B+", etc.
+            return '8'
+        return grade_mapping.get(grade, 'NaN')  # Use mapping, default to 'NaN' if unknown
+
+    # Apply grade conversion
+    raw_data['Verified Grade'] = raw_data['Verified Grade'].apply(map_grade)
+
+    # Convert to numeric
     raw_data['Verified Grade'] = pd.to_numeric(raw_data['Verified Grade'], errors='coerce', downcast='float')
 
     raw_data['Completed Credits'] = pd.to_numeric(raw_data['Completed Credits'], errors='coerce', downcast='float')
 
     return raw_data
+
 
 
 def keep_column(group_data, column_name):
@@ -66,10 +102,41 @@ def has_low_grade(group_data, threshold=2.0):
     #Check if the student has any grades below the a C.
     return 'yes' if (group_data['Verified Grade'] < threshold).any() else 'no'
 
+def remove_repeated_courses(group_data):
+    # Define sorting order for terms: descending year, then SP before FA
+    group_data = group_data[group_data['Enrolled Semester'].notna() & (group_data['Enrolled Semester'].str.strip() != '')].copy()
+    group_data['Year'] = group_data['Enrolled Semester'].str[:2].astype(int)  # Extract year
+    group_data['Semester'] = group_data['Enrolled Semester'].str[2:]  # Extract semester
+    group_data['Semester'] = group_data['Semester'].map({'SP': 0, 'SU': 1, 'FA': 2})  # Map SP (Spring), SU (Summer), FA (Fall)
+    # Sort by Year (descending) and Semester (ascending)
+    group_data = group_data.sort_values(by=['Year', 'Semester'], ascending=[False, True])
+    # Drop duplicate courses, keeping the first occurrence (which is now the most recent)
+    group_data = group_data.drop_duplicates(subset=['Dept', 'Course Number'], keep='first')
+    # Drop temporary sorting columns
+    group_data = group_data.drop(columns=['Year', 'Semester'])
+    return group_data
+
+
+def list_repeated_courses(group_data):
+    # Create a unique course identifier
+    group_data['Course Identifier'] = group_data['Dept'] + group_data['Course Number'].astype(str)
+    
+    # Find duplicated course identifiers
+    repeated_courses = group_data.duplicated(subset=['Course Identifier'], keep=False)
+    
+    # Get unique repeated course names
+    repeated_list = group_data.loc[repeated_courses, 'Course Identifier'].dropna().unique().tolist()
+    
+    # Convert list to a comma-separated string, or empty string if no duplicates
+    return ", ".join(repeated_list) if repeated_list else ""
+
+
+
 
 def get_classes_below_c(group_data):
     #Get a list of courses where a student scored below a C.
-    classes = group_data.loc[(group_data['Verified Grade'] < 2) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
+    group_data_no_repeats = remove_repeated_courses(group_data)
+    classes = group_data_no_repeats.loc[(group_data_no_repeats['Verified Grade'] < 2).dropna(), ['Dept', 'Course Number']]
     return ', '.join((classes['Dept'] + classes['Course Number']).tolist()) if not classes.empty else ''
 
 
@@ -87,7 +154,7 @@ def science_grade_check(group_data):
 
 def science_below_c_list(group_data):
     #list of science classes lower than a c, will not include transfer classes because all transfer classes are above a C and have no Verified Grade
-    science_below_c = group_data.loc[((group_data['Verified Grade']) < 2) & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')) & (group_data['Completed Credits'] > 0.00), ['Dept', 'Course Number']]
+    science_below_c = group_data.loc[((group_data['Verified Grade']) < 2).dropna() & (group_data['Dept'].str.contains('BL') | group_data['Dept'].str.contains('CH')), ['Dept', 'Course Number']]
     science_below_c = science_below_c['Dept'] + science_below_c['Course Number']
     science_below_c = ', '.join(science_below_c.tolist()) if not science_below_c.empty else ''
     return science_below_c
@@ -138,8 +205,7 @@ def science_inc_trans_c_or_above(group_data):
 
     #Transfer courses (Dept contains both dept and course number for transfer courses)
     transfer_courses = group_data.loc[
-        group_data['Dept'].str.contains(r'CH\*206A|CH\*207A|BL\*254|BL\*255|BL\*274|BL\*275|BL\*276|BL\*277', na=False)
-        & (group_data['Completed Credits'] > 0.00),  # Ensure completed credits > 0 for transfer courses
+        group_data['Dept'].str.contains(r'CH\*206A|CH\*207A|BL\*254|BL\*255|BL\*274|BL\*275|BL\*276|BL\*277', na=False),
         ['Dept']
     ]
 
@@ -222,7 +288,7 @@ def registered_for_remaining_check(group_data):
     #registered for remaining science courses? counts transfer classes
     #check for courses from the science_remaining list AND empty verfied grade column
     registered_science_classes = group_data.loc[
-        (group_data['Verified Grade'].isnull())
+        ((group_data['Verified Grade'].isnull())|(group_data['Verified Grade']=='8'))
         & (
         ((group_data['Dept'].str.contains('CH', na=False)) & 
          (group_data['Course Number'].str.contains('206A|207A', na=False))) 
@@ -248,6 +314,7 @@ def registered_for_remaining_check(group_data):
         registered = 'yes' if registered_science_set == science_at_regis_remaining else 'no'
         
     return registered
+    # return registered_science_set
 
 
 
