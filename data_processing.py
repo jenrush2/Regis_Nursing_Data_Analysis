@@ -287,8 +287,12 @@ def list_of_withdrawn_classes(group_data):
 def registered_for_remaining_check(group_data):
     #registered for remaining science courses? counts transfer classes
     #check for courses from the science_remaining list AND empty verfied grade column
+    #below is for debugging
+    # grades = group_data['Verified Grade']
+    # print(f"Verified Grade: {grades}")
+    
     registered_science_classes = group_data.loc[
-        ((group_data['Verified Grade'].isnull())|(group_data['Verified Grade']=='8'))
+        ((group_data['Verified Grade'].isnull())|(group_data['Verified Grade'] == 8))
         & (
         ((group_data['Dept'].str.contains('CH', na=False)) & 
          (group_data['Course Number'].str.contains('206A|207A', na=False))) 
@@ -314,7 +318,8 @@ def registered_for_remaining_check(group_data):
         registered = 'yes' if registered_science_set == science_at_regis_remaining else 'no'
         
     return registered
-    # return registered_science_set
+    #below is for debugging
+    #return registered_science_set
 
 
 
