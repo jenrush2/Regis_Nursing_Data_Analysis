@@ -41,6 +41,7 @@ for student_id, group_data in grouped_data:
     science_non_regis = list_of_science_transfer_classes(group_data)
     withdrawn_classes = list_of_withdrawn_classes(group_data)
     registered_remaining = registered_for_remaining_check(group_data)
+    repeated_courses = list_repeated_courses(group_data)
     
 
 
@@ -62,6 +63,7 @@ for student_id, group_data in grouped_data:
         'List of Science Classes Transferred In': science_non_regis,
         'List of Classes Withdrawn': withdrawn_classes,
         'Registered for Remaining Sci': registered_remaining,
+        'List of Repeated Courses': repeated_courses,
         'Minor': minor
     })
 
